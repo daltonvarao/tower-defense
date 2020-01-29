@@ -24,7 +24,7 @@ class Game:
 
     def handle_buy_button_click(self, pos):
         self.player.clear_messages()
-        if self.player.pay(Tower):
+        if self.player.pay(Tower, 'buy'):
             tower = Tower(pos_xy=pos, dragging=True, player=self.player)
             self.tower_group.add(tower)
 
@@ -72,14 +72,16 @@ class Game:
 
     def new_wave(self):
         for i in range(0, self.player.enemy_num//2):
-            skull = Skull(pos_xy=(75, i*(-150)), coords=coords(0))
+            skull = Skull(pos_xy=(75, i*(-100)), coords=coords(0))
             self.skull_group.add(skull)
 
         for i in range(0, self.player.enemy_num//2):
-            skull = Skull(pos_xy=(i*(-150), 425), coords=coords(1))
+            skull = Skull(pos_xy=(i*(-100), 425), coords=coords(1))
             self.skull_group.add(skull)
 
     def setup(self):
+        self.display = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        pygame.display.set_caption('Tower Defense')
         self.message_box = pygame.Surface((800, 120))
 
         self.skull_group = Skulls()
@@ -94,16 +96,15 @@ class Game:
         self.player_group = pygame.sprite.Group(self.player)
         self.player.change_to_pause_button = self.change_to_pause_button
         self.player.change_to_start_button = self.change_to_start_button
-        
-        self.display = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+
         self.font = pygame.font.Font(assets_file('8bit.ttf'), 50)
         self.message_font = pygame.font.Font(assets_file('8bit.ttf'), 36)
         self.button_group = Buttons()
 
-        buy_button = Button((50, 650), 'buy.png')
+        buy_button = Button((40, 650), 'buy.png')
         buy_button.handle_click = self.handle_buy_button_click
 
-        upgrade_button = Button((180, 650), 'upgrade.png')
+        upgrade_button = Button((160, 650), 'upgrade.png')
         upgrade_button.handle_click = self.handle_upgrade_button_click
 
         self.pause_button = Button((1160, 650), 'pause.png')
@@ -136,20 +137,22 @@ class Game:
             if self.event.type == MOUSEMOTION:
                 self.tower_group.update_move(self.event.pos)
 
-    def send_message(text):
-        return True
-
     def loop(self):
         while True:
             self.get_events()
+
             self.cash_text = self.font.render(f'CASH: $ {self.player.score}', False, (0, 0, 0))
+            self.enemies_left_text = self.font.render(f'ENEMIES LEFT: {self.player.enemies_left}', False, (0, 0, 0))
             self.wave_text = self.font.render(f'WAVE: #{self.player.wave}', False, (0, 0, 0))
+            self.upgrade_text = self.font.render(f'{self.player.wave}', False, (0, 0, 0))
 
             self.display.blit(self.background, (0, 0))
             self.message_box.fill((255,255, 255))
 
-            self.display.blit(self.cash_text, (350, 632))
-            self.display.blit(self.wave_text, (750, 632))
+            self.display.blit(self.cash_text, (230, 632))
+            self.display.blit(self.enemies_left_text, (500, 632))
+            self.display.blit(self.wave_text, (870, 632))
+            self.display.blit(self.upgrade_text, (870, 632))
 
             self.tower_group.draw_radius(self.display)
             self.tower_group.draw(self.display)
@@ -180,7 +183,7 @@ class Game:
                 self.skull_group.draw(self.display)
 
             pygame.display.update()
-            self.clock.tick(100)
+            self.clock.tick(60)
 
     def run(self):
         self.setup()

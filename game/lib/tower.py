@@ -9,7 +9,9 @@ from .utils import Vector, assets_file
 
 class Tower(Object):
 
-    price = 100
+    prices = {
+        'buy': 100
+    }
 
     def __init__(self, pos_xy: tuple = None, dragging=True, player=None):
         img_src = assets_file('tower.png')
@@ -19,9 +21,13 @@ class Tower(Object):
         self.last_shoot = None
         self.power = 5
         self.level = 1
+        self.prices['upgrade'] = self.calcule_upgrade_cost()
         self.player = player
-        self.selected = False
+        self.selected = True
         self.shoot_group = pygame.sprite.Group()
+
+    def calcule_upgrade_cost(self):
+        return int(0.5 * self.prices['buy'] * self.level)
 
     def upgrade(self):
         self.level_up()
@@ -54,13 +60,14 @@ class Tower(Object):
         )
 
     def update(self):
-        if self.selected and self.player.pay(self):
+        if self.selected and self.player.pay(self, action='upgrade'):
             self.upgrade()
-        else:
-            self.selected = False
+        # else:
+            # self.selected = False
 
     def update_move(self, mouse_pos):
         if self.dragging:
+            self.player.clear_messages()
             self.move(mouse_pos)
 
     def draw_shoots(self, display):
@@ -87,6 +94,8 @@ class Towers(pygame.sprite.Group):
 
     def dragging(self, drag):
         for sprite in self.sprites():
+            if not drag:
+                sprite.selected = False
             sprite.dragging = drag
 
     def update_move(self, pos: tuple):
@@ -98,9 +107,10 @@ class Towers(pygame.sprite.Group):
             sprite.mouse_drag(pos)
 
     def draw_radius(self, display):
-        for sprite in self.dragging_sprites():
-            sprite.draw_radius(display)
-    
+        for sprite in self.sprites():
+            if sprite.selected:
+                sprite.draw_radius(display)
+
     def draw_shoots(self, display):
         for sprite in self.sprites():
             sprite.draw_shoots(display)

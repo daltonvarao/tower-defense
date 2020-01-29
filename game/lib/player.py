@@ -18,7 +18,7 @@ class Player(Object):
         self.wave = 1
         self.score = 100
         self.health = 6
-        self.enemy_num = 6
+        self.enemy_num = 6 + self.wave*2 
         self.running_wave = False
         self.wave_end = False
         self.show_messages = True
@@ -78,9 +78,9 @@ class Player(Object):
     def has_messages(self):
         return self.messages
 
-    def pay(self, tower):
-        if self.score >= tower.price:
-            self.score -= tower.price
+    def pay(self, tower, action):
+        if self.score >= tower.prices[action]:
+            self.score -= tower.prices[action]
             return True
         return False
 
@@ -98,6 +98,10 @@ class Player(Object):
 
     def game_over(self):
         return self.health == 0
+
+    @property
+    def enemies_left(self):
+        return len(self.enemy_group)
 
     def update(self, surface):
         enemy_num = len(self.enemy_group)
